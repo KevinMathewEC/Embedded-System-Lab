@@ -64,9 +64,12 @@ void readTasksFromFile(const char* filename, struct Task** waitingQueue, struct 
         exit(EXIT_FAILURE);
     }
     struct Task** queue = NULL;
-    
+    char line[MAX_INPUT];  // Adjust the buffer size as needed
+
+
     // Read tasks from the file
-    while (!feof(file)) {
+    //while (!feof(file)) {
+    while(fgets(line, sizeof(line), file) != NULL){
         
         struct Task* newTask = (struct Task*)malloc(sizeof(struct Task));
         if (newTask == NULL) {
@@ -77,7 +80,7 @@ void readTasksFromFile(const char* filename, struct Task** waitingQueue, struct 
         
         char task_state_str[20];
         // Read task fields from the file
-        if (fscanf(file, "%d %d %s %d", &newTask->task_id, &newTask->task_pri, task_state_str, &newTask->event_id) == 4) {
+        if (sscanf(line, "%d,%d,%d,%s", &newTask->task_id, &newTask->task_pri, &newTask->event_id,task_state_str) ) {
             newTask->ptr_next_task = NULL;
         
         if (strcmp(task_state_str, "RUNNING") == 0) {
@@ -97,7 +100,9 @@ void readTasksFromFile(const char* filename, struct Task** waitingQueue, struct 
             // Add the task to the queue
            
             addTaskToQueue(queue, newTask);
+            
         } else {
+            
             free(newTask); // Discard the task if reading fails
         }
     }
@@ -121,9 +126,6 @@ int deleteTaskFromQueue(struct Task** queue, int task_id) {
             return 0;
     } 
     else if(previous == NULL){
-        printf("Here");
-        printf("task id %d",current->task_id);
-        printf("task state %d",current->task_state);
         *queue = current->ptr_next_task;
     }
     else {
@@ -163,7 +165,7 @@ void Triggerevent(struct Task** waitingQueue, struct Task** readyQueue, int even
         
         while (current != NULL){//move all tasks which are triggered by event to ready queue
                 if(current->event_id == event_id){
-                        printf("event to trigger %d\n",current->event_id);
+                        
                         switchQueue(waitingQueue,readyQueue,current->task_id,event_id,READY);
                         current = current->ptr_next_task;
                 }
@@ -183,7 +185,7 @@ void runningState(struct Task** runningQueue,struct Task** readyQueue ){
         if((running == NULL) || ((current->task_pri) < (running->task_pri)) ){//move highest priority task in ready queue to running
                 
                 switchQueue(readyQueue,runningQueue,current->task_id,0,RUNNING);
-                //status = deleteTaskFromQueue(readyQueue, current->task_id);
+                
         }
 }
 
@@ -280,16 +282,13 @@ int main()
         token = strtok(NULL, " ");
        
         Triggerevent(&waitingQueue, &readyQueue, atoi(token));
-         displayQueue("WaitingQueue",waitingQueue);
-         displayQueue("ReadyQueue",readyQueue);
-         displayQueue("RunningQueue",runningQueue);        
         runningState(&runningQueue, &readyQueue);
     }
 
     else if(*token == 's'){
         token = strtok(NULL, " ");
         *id = atoi(token);
-         switchQueue(&runningQueue,&readyQueue,runningQueue->task_id,*id,READY);
+         switchQueue(&runningQueue,&waitingQueue,runningQueue->task_id,*id,READY);
          runningState(&runningQueue, &readyQueue);
     }
 
@@ -313,4 +312,3 @@ int main()
 
 
 }
-           
