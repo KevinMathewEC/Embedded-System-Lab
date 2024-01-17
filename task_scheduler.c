@@ -6,8 +6,8 @@
 // Enumeration for task states
 enum TaskState {
     RUNNING,
-    WAITING,
-    READY
+    READY,
+    WAITING
 };
 
 // Task structure
@@ -19,6 +19,7 @@ struct Task {
     int event_id;
     struct Task* ptr_next_task;
 };
+
 
 struct Task* createTask(int task_id, int task_pri, void* ptr_context, enum TaskState task_state, int event_id) {
     struct Task* newTask = (struct Task*)malloc(sizeof(struct Task));
@@ -54,11 +55,60 @@ void addTaskToQueue(struct Task** queue, struct Task* newTask) {
     }
 }
 
+// Function to read tasks from a text file and create tasks
+void readTasksFromFile(const char* filename, struct Task** waitingQueue, struct Task** readyQueue, struct Task** runningQueue) {
+    FILE* file = fopen(filename, "r");
+    
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+    struct Task** queue = NULL;
+    
+    // Read tasks from the file
+    while (!feof(file)) {
+        
+        struct Task* newTask = (struct Task*)malloc(sizeof(struct Task));
+        if (newTask == NULL) {
+            perror("Error allocating memory for new task");
+            exit(EXIT_FAILURE);
+        }
+
+        
+        char task_state_str[20];
+        // Read task fields from the file
+        if (fscanf(file, "%d %d %s %d", &newTask->task_id, &newTask->task_pri, task_state_str, &newTask->event_id) == 4) {
+            newTask->ptr_next_task = NULL;
+        
+        if (strcmp(task_state_str, "RUNNING") == 0) {
+            newTask->task_state = RUNNING;
+            queue=runningQueue;
+        } else if (strcmp(task_state_str, "WAITING") == 0) {
+            newTask->task_state = WAITING;
+            queue=waitingQueue;
+        } else if (strcmp(task_state_str, "READY") == 0) {
+            newTask->task_state = READY;
+            queue=readyQueue;
+        } else {
+            fprintf(stderr, "Invalid task state: %s\n", task_state_str);
+            continue;
+        }
+
+            // Add the task to the queue
+           
+            addTaskToQueue(queue, newTask);
+        } else {
+            free(newTask); // Discard the task if reading fails
+        }
+    }
+
+    fclose(file);
+}
+
 // Function to add a task to the priority queue based on task_pri
 int deleteTaskFromQueue(struct Task** queue, int task_id) {
     struct Task* current = *queue;
     struct Task* previous= NULL;
-
 
     // Find the position in the queue based on task_pri
     while ((current != NULL) && (current->task_id != task_id )) {
@@ -68,13 +118,16 @@ int deleteTaskFromQueue(struct Task** queue, int task_id) {
 
     // delete task from the queue
     if (current == NULL) {
-          //   printf("Task with Task_ID: %d does not exist\n",task_id);
-             return 0;
-    } else if((previous == NULL) && (current == *queue)){//queue with one Task
-            *queue = NULL;
-      
+            return 0;
+    } 
+    else if(previous == NULL){
+        printf("Here");
+        printf("task id %d",current->task_id);
+        printf("task state %d",current->task_state);
+        *queue = current->ptr_next_task;
     }
     else {
+        
         previous->ptr_next_task = current->ptr_next_task;
     }
     
@@ -82,7 +135,7 @@ int deleteTaskFromQueue(struct Task** queue, int task_id) {
 }
 
 // Function to move a task from one queue to another
-void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id){
+void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, int event_id, enum TaskState state){
     struct Task* current = *queue_from;
     int status;
     while (current != NULL && (current->task_id != task_id)){
@@ -92,8 +145,12 @@ void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id){
     if(current == NULL){
         fprintf(stderr,"Cannot move task with Task_ID: %d , Task does not exist\n",task_id);
     } else {
-         addTaskToQueue(queue_to, current);
          status = deleteTaskFromQueue(queue_from, task_id);
+         current->event_id = event_id;
+         current->task_state = state;
+         addTaskToQueue(queue_to, current);
+         
+         
 
     }
 
@@ -103,11 +160,11 @@ void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id){
 // Function to move tasks from waiting to ready queue on the occurence of an event
 void Triggerevent(struct Task** waitingQueue, struct Task** readyQueue, int event_id){
         struct Task* current = *waitingQueue;
-        printf("check");
+        
         while (current != NULL){//move all tasks which are triggered by event to ready queue
                 if(current->event_id == event_id){
-                        printf("event  matched");
-                        switchQueue(waitingQueue,readyQueue,current->task_id);
+                        printf("event to trigger %d\n",current->event_id);
+                        switchQueue(waitingQueue,readyQueue,current->task_id,event_id,READY);
                         current = current->ptr_next_task;
                 }
                 else{
@@ -123,9 +180,10 @@ void runningState(struct Task** runningQueue,struct Task** readyQueue ){
         struct Task* running = *runningQueue;
         int status;
         
-        if(running == NULL || ((current->task_pri) < (running->task_pri)) ){//move highest priority task in ready queue to running
-                switchQueue(readyQueue,runningQueue,current->task_id);
-                status = deleteTaskFromQueue(readyQueue, current->task_id);
+        if((running == NULL) || ((current->task_pri) < (running->task_pri)) ){//move highest priority task in ready queue to running
+                
+                switchQueue(readyQueue,runningQueue,current->task_id,0,RUNNING);
+                //status = deleteTaskFromQueue(readyQueue, current->task_id);
         }
 }
 
@@ -151,7 +209,13 @@ int main()
     char inputLine[MAX_INPUT];
     char* token=NULL;
     int status;
- 
+    
+    
+    // Specify the path init_tasks.txt
+    const char* filename = "init_tasks.txt";
+   
+    // Read tasks from the text file and create tasks
+    readTasksFromFile(filename, &waitingQueue,&readyQueue,&runningQueue);
 
     while(1){
     
@@ -162,7 +226,7 @@ int main()
     printf("\ns <event_id>           - Suspend running task with event_id");
     printf("\np                      - Display all Queues");
     printf("\nexit                   - Exit\n");
-    
+    // defining buffer
     // using fgets to take input from stdin
     printf("# ");
 
@@ -209,19 +273,23 @@ int main()
         *id = atoi(token);
         token = strtok(NULL, " ");
         *(id+1) = atoi(token);
-        switchQueue(&readyQueue, &waitingQueue,*id);
+        switchQueue(&readyQueue, &waitingQueue,*id,*(id+1),WAITING);
     }
 
     else if(*token == 'e'){
         token = strtok(NULL, " ");
        
         Triggerevent(&waitingQueue, &readyQueue, atoi(token));
+         displayQueue("WaitingQueue",waitingQueue);
+         displayQueue("ReadyQueue",readyQueue);
+         displayQueue("RunningQueue",runningQueue);        
         runningState(&runningQueue, &readyQueue);
     }
 
     else if(*token == 's'){
-
-         switchQueue(&runningQueue,&readyQueue,runningQueue->task_id);
+        token = strtok(NULL, " ");
+        *id = atoi(token);
+         switchQueue(&runningQueue,&readyQueue,runningQueue->task_id,*id,READY);
          runningState(&runningQueue, &readyQueue);
     }
 
@@ -235,7 +303,9 @@ int main()
             printf("Exiting");
             exit(0);
      }
-   
+     
+
+    
    }
    free(runningQueue);
    free(waitingQueue);
