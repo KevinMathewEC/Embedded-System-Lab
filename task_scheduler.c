@@ -40,7 +40,7 @@ void addTaskToQueue(struct Task** queue, struct Task* newTask) {
     struct Task* previous = NULL;
 
     // Find the correct position in the queue based on task_pri
-    while (current != NULL && current->task_pri < newTask->task_pri) {
+    while (current != NULL && (current->task_pri < newTask->task_pri)) {
         previous = current;
         current = current->ptr_next_task;
     }
@@ -136,6 +136,16 @@ int deleteTaskFromQueue(struct Task** queue, int task_id) {
     return 1;
 }
 
+// Function to display tasks in a queue
+void displayQueue(const char* queueName, struct Task* queue) {
+    printf("%s Queue:\n", queueName);
+    while (queue != NULL) {
+        printf("Task ID: %d, Priority: %d, State: %d, Event ID: %d\n", queue->task_id, queue->task_pri, queue->task_state, queue->event_id);
+        queue = queue->ptr_next_task;
+    }
+    printf("\n");
+}
+
 // Function to move a task from one queue to another
 void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, int event_id, enum TaskState state){
     struct Task* current = *queue_from;
@@ -143,17 +153,14 @@ void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, i
     while (current != NULL && (current->task_id != task_id)){
         current = current->ptr_next_task;
     }
-
+    
     if(current == NULL){
         fprintf(stderr,"Cannot move task with Task_ID: %d , Task does not exist\n",task_id);
     } else {
-         status = deleteTaskFromQueue(queue_from, task_id);
          current->event_id = event_id;
          current->task_state = state;
+         status = deleteTaskFromQueue(queue_from, task_id);  
          addTaskToQueue(queue_to, current);
-         
-         
-
     }
 
 
@@ -162,12 +169,14 @@ void switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, i
 // Function to move tasks from waiting to ready queue on the occurence of an event
 void Triggerevent(struct Task** waitingQueue, struct Task** readyQueue, int event_id){
         struct Task* current = *waitingQueue;
-        
+        int task_id;
         while (current != NULL){//move all tasks which are triggered by event to ready queue
                 if(current->event_id == event_id){
-                        
-                        switchQueue(waitingQueue,readyQueue,current->task_id,event_id,READY);
+                        task_id=current->task_id;
                         current = current->ptr_next_task;
+                        switchQueue(waitingQueue,readyQueue,task_id,0,READY);
+                       
+                        
                 }
                 else{
                         current = current->ptr_next_task;
@@ -182,22 +191,21 @@ void runningState(struct Task** runningQueue,struct Task** readyQueue ){
         struct Task* running = *runningQueue;
         int status;
         
-        if((running == NULL) || ((current->task_pri) < (running->task_pri)) ){//move highest priority task in ready queue to running
-                
+        if(readyQueue != NULL){
+            if(running == NULL){
                 switchQueue(readyQueue,runningQueue,current->task_id,0,RUNNING);
-                
+            }
+            else{
+                switchQueue(runningQueue,readyQueue,running->task_id,0,READY);
+                switchQueue(readyQueue,runningQueue,current->task_id,0,RUNNING);
+            }
+        }
+        else{
+            printf("Ready Queue is empty");
         }
 }
 
-// Function to display tasks in a queue
-void displayQueue(const char* queueName, struct Task* queue) {
-    printf("%s Queue:\n", queueName);
-    while (queue != NULL) {
-        printf("Task ID: %d, Priority: %d, State: %d, Event ID: %d\n", queue->task_id, queue->task_pri, queue->task_state, queue->event_id);
-        queue = queue->ptr_next_task;
-    }
-    printf("\n");
-}
+
 
 
 int main()
@@ -282,13 +290,16 @@ int main()
         token = strtok(NULL, " ");
        
         Triggerevent(&waitingQueue, &readyQueue, atoi(token));
+                 displayQueue("WaitingQueue",waitingQueue);
+         displayQueue("ReadyQueue",readyQueue);
+         displayQueue("RunningQueue",runningQueue);
         runningState(&runningQueue, &readyQueue);
     }
 
     else if(*token == 's'){
         token = strtok(NULL, " ");
         *id = atoi(token);
-         switchQueue(&runningQueue,&waitingQueue,runningQueue->task_id,*id,READY);
+         switchQueue(&runningQueue,&waitingQueue,runningQueue->task_id,*id,WAITING);
          runningState(&runningQueue, &readyQueue);
     }
 
@@ -312,3 +323,4 @@ int main()
 
 
 }
+           
