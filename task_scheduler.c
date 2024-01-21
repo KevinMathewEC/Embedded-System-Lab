@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define MAX_INPUT 50
+#define DEBUG 0
 
 // Enumeration for task states
 enum TaskState {
@@ -234,6 +235,7 @@ int main()
     printf("\nw <task_id> <event_id> - Move task from Ready to Waiting queue");
     printf("\ne <event_id>           - Trigger the event of event_id");
     printf("\ns <event_id>           - Suspend running task with event_id");
+    if (DEBUG) 
     printf("\np                      - Display all Queues");
     printf("\nexit                   - Exit\n");
     // defining buffer
@@ -290,9 +292,6 @@ int main()
         token = strtok(NULL, " ");
        
         Triggerevent(&waitingQueue, &readyQueue, atoi(token));
-                 displayQueue("WaitingQueue",waitingQueue);
-         displayQueue("ReadyQueue",readyQueue);
-         displayQueue("RunningQueue",runningQueue);
         runningState(&runningQueue, &readyQueue);
     }
 
