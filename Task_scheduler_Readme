@@ -1,0 +1,23 @@
+# Task Management System
+
+## Overview
+
+This C program implements a simple Task Management System, where tasks are organized in queues. The Task Control Block (TCB) structure contains essential information about each task, such as task ID, priority, context pointer, task state, event ID, and a pointer to the next task in the queue.
+
+Three main queues are implemented:
+1.runningQueue : Task with the highest priority(lowest task_pri) is put in the running state
+2.waitingQueue :Tasks in the waiting queue are waiting for a specific event (identified by `event_id`). When the event occurs, the task is removed from the waiting queue and added to the ready queue. 
+3.readyQueue :Tasks in the waiting queue are sorted based on their priority. Lower task priority numbers indicate higher priority.
+
+##Function descriptions
+1. void addTaskToQueue(struct Task** queue, struct Task* newTask) : Add newTask to the queue based on priority of newTask
+2. readTasksFromFile(const char* filename, struct Task** waitingQueue, struct Task** readyQueue, struct Task** runningQueue) : Read init_tasks.txt file and populate the queues with the initial state of the system
+3. deleteTaskFromQueue(struct Task** queue, int task_id) : Delete task with task_id from queue
+4. displayQueue(const char* queueName, struct Task* queue): Displays the tasks present in the queue
+5. switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, int event_id, enum TaskState state) : Switch task with task_id from queue_from to queue_to
+6. Triggerevent(struct Task** waitingQueue, struct Task** readyQueue, int event_id) : On the occurence of an event , move appropriate queues from waititng queue to ready or running queue
+7. runningState(struct Task** runningQueue,struct Task** readyQueue ) : Move task with highest priority in ready queue to running state
+
+##Macros
+1. MAX_INPUT : max size of user input
+2. DEBUG : if 1, debug command 'p' to display queue is made available to the user
