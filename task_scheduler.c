@@ -303,10 +303,12 @@ int main()
     }
 
     else if(*token == 'p'){
+        if(DEBUG){
          displayQueue("WaitingQueue",waitingQueue);
          displayQueue("ReadyQueue",readyQueue);
          displayQueue("RunningQueue",runningQueue);
          *inputLine = '\n';
+        }
     }
     else if(!(strcmp(token,"exit"))){
             printf("Exiting");
