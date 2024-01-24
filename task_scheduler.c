@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define MAX_INPUT 50
-#define DEBUG 0
+#define DEBUG 1
 
 // Enumeration for task states
 enum TaskState {
@@ -206,7 +206,20 @@ void runningState(struct Task** runningQueue,struct Task** readyQueue ){
         }
 }
 
-
+int searchqueue(struct Task** queue, int task_id){
+    struct Task* current = *queue;
+    int status=0;
+    
+    while ((current != NULL) && (current->task_id != task_id )) {
+        current = current->ptr_next_task;
+    }
+    if(current != NULL){
+      if(current->task_id == task_id)
+         status=1;
+    }    
+    return(status);
+    
+}
 
 
 int main()
@@ -227,7 +240,8 @@ int main()
    
     // Read tasks from the text file and create tasks
     readTasksFromFile(filename, &waitingQueue,&readyQueue,&runningQueue);
-
+    addTaskToQueue(&readyQueue, createTask(999,9999,NULL,READY,999));
+    
     while(1){
     
     printf("\nn <task_id>            - create a new task");
@@ -261,6 +275,12 @@ int main()
          fprintf(stderr,"No task id provided");
          break;
       }
+        if((searchqueue(&waitingQueue,atoi(token))) || (searchqueue(&readyQueue,atoi(token))) || (searchqueue(&runningQueue,atoi(token))))
+        {
+            printf("Task with task_id: %d already exists",atoi(token));
+            continue;
+        }
+          
         printf("Please provide event_id for new Task :");
         scanf("%d",id);
         printf("Please provide priority of the new Task :");
