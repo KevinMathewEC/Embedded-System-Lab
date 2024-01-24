@@ -17,6 +17,7 @@ Three main queues are implemented:
 5. switchQueue(struct Task** queue_from, struct Task** queue_to,int task_id, int event_id, enum TaskState state) : Switch task with task_id from queue_from to queue_to
 6. Triggerevent(struct Task** waitingQueue, struct Task** readyQueue, int event_id) : On the occurence of an event , move appropriate queues from waititng queue to ready or running queue
 7. runningState(struct Task** runningQueue,struct Task** readyQueue ) : Move task with highest priority in ready queue to running state
+8. int searchqueue(struct Task** queue, int task_id) : Search in queue if task with task_id already exists
 
 ##Macros
 1. MAX_INPUT : max size of user input
