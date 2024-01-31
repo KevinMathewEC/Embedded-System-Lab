@@ -1,0 +1,43 @@
+###########################################################
+DESCRIPTION
+This C program demonstrates controlling LEDs connected to the TIVA C series microcontroller. The program uses GPIO to control the state of LEDs on the GPIOF port. LEDs are controlled based on the value of the state variable.
+
+
+##########################################################
+REQUIREMENTS
+TIVA C Series microcontroller board.
+Development environment with GCC compiler for ARM Cortex-M.
+
+##########################################################
+FUNCTIONALITY
+The program initializes the GPIO pins connected to the LEDs.
+It continuously loops, updating the LED state based on the value of the state variable.
+The state variable determines the color of the LED to be lit.
+The program also supports switching LED colors using external switches connected to the GPIO pins.
+
+##########################################################
+GPIO Pin Configuration
+LED pins:
+PF0: Connected to the red LED.
+PF1: Connected to the blue LED.
+PF2: Connected to the green LED.
+PF3: Reserved.
+PF4: Reserved.
+Switch pins:
+PF0: Connected to switch SW1.
+PF4: Connected to switch SW0.
+Color Mapping
+0x00: Green
+0x01: Blue
+0x02: Cyan
+0x03: Red
+0x04: Yellow
+0x05: Magenta
+0x06: White
+Notes
+Make sure to properly configure the GPIO pins according to the hardware setup.
+Adjust the MAX_DELAY constant to control the delay between LED state changes.
+
+##########################################################
+Credits
+This code was developed for educational purposes and is provided as-is without any warranty.
