@@ -48,12 +48,14 @@ void OutCRLF(void);
 void UART_OutChar(unsigned char );
 void UART_OutString(char*);
 void Clear_InpBuff();
+void Debounce_Delay();
 int unsigned state=0x00;
 int unsigned color=0x00;//Color of LED
+short valid_char=1;
 short all_on=0;//set when LED to be set to 1
 short inp_done=0;//set when newline received from console
 char string[50];
-char Inp_buffer[50];
+char console_cmd_buffer[50];
 int length=0;
 int char_cnt=0;
 int main(void)
@@ -71,7 +73,7 @@ int main(void)
 
     //UART
    UART0_init();
-
+   UART_OutChar('>');
 
 
 while(1) {
@@ -123,26 +125,34 @@ while(1) {
 void UART_cmpInp()
 {
     short i=0;
+    char cmd_string[10];
 
-    UART_InString(string,10);
+    UART_InString(string,MAX_INP_BUFF_SIZE);
 
     if(!inp_done){
-        Inp_buffer[char_cnt]=string[0];
+        if(string[0] == BS){
+            if(char_cnt)
+              char_cnt--;
+        }
+        else if(valid_char){
+        console_cmd_buffer[char_cnt]=string[0];
         char_cnt++;
+        valid_char=0;
+        }
     }
 
    if(inp_done){
-       char_cnt=0;
-       length=0;
-       inp_done=0;
-    while(Inp_buffer[i]!=CR){
-        Inp_buffer[i] = tolower(Inp_buffer[i]);
+     
+     while(console_cmd_buffer[i]!=CR){
+         console_cmd_buffer[i] = tolower(console_cmd_buffer[i]);
         i++;
-    }
-    UART_OutString(Inp_buffer);
-    OutCRLF();
-    char* token = strtok(Inp_buffer, " ");
 
+    }
+    // Copy first 5 characters to first_part string
+    strncpy(cmd_string, console_cmd_buffer, 5);
+    cmd_string[5] = '\0'; // Null-terminate first_part string
+
+   //  UART_OutString(token);
     typedef struct Color {
         char color_name[7];
         int state_value;
@@ -152,30 +162,28 @@ void UART_cmpInp()
                       {"cyan", 2} , {"red", 3},\
                       {"yellow", 4}, {"magenta", 5},\
                       {"white", 6}};
-    if(!(strcmp(token,"color"))){
 
-        UART_OutString("color name");
-        token = strtok(NULL, " ");
-         UART_OutString(token);
-        OutCRLF();
+        if(!(strcmp(cmd_string,"color"))){
+            strcpy(cmd_string, console_cmd_buffer + 5);
+         OutCRLF();
         for (i=0; i < 7; i++) {
-           if (strcmp(token, colors[i].color_name) == 0) {
+           if (strcmp(cmd_string, colors[i].color_name) == 0) {
              state = colors[i].state_value;
+        
 
     }
    }
   }
-    else if(!(strcmp(token,"blink"))){
-        token = strtok(NULL, " ");
-        UART_OutString("blink rate");
-
-        if(((int)token)==0)
+    else if(!(strcmp(cmd_string,"blink"))){
+         strcpy(cmd_string, console_cmd_buffer + 5);
+          if(atoi(cmd_string)==0){
             all_on=1;
+            OutCRLF();
+          }
         else{
          all_on=0;
-         int test=atoi(token);
-        delay=MAX_DELAY/(test);
-
+         int delay_div=atoi(cmd_string);
+        delay=MAX_DELAY/(delay_div);
         OutCRLF();
         }
     }
@@ -184,8 +192,11 @@ void UART_cmpInp()
                   \n\r [1] color <color name> ; color name must be green, blue, cyan, red, yellow, magenta or white.\
                   \n\r [2] blink <blink rate> ; blink rate must be an integer\n\r");
     }
-
-    UART_OutString("done");
+    Clear_InpBuff();
+    UART_OutChar('>');
+    char_cnt=0;
+    length=0;
+    inp_done=0;
    }
 }
 void UART0_init()
@@ -213,9 +224,7 @@ void UART_OutChar(unsigned char data){
   while((UART0_FR_R&UART_FR_TXFF) != 0);
   UART0_DR_R = data;
 }
-// Output String (NULL termination)
-// Input: pointer to a NULL-terminated string to be transferred
-// Output: none
+
 void UART_OutString(char *pt){
   char* ptr = pt;
   while(*ptr){
@@ -232,19 +241,23 @@ char character;
   if(character != CR){
     if(character == BS){
       if(length){
-        bufPt--;
+        *bufPt=BS;
         length--;
+        valid_char=0;
+        UART_OutChar(BS);
+        UART_OutChar(SP);
         UART_OutChar(BS);
       }
     }
     else if(length>=max){
+        valid_char=0;
         UART_OutString("Input Buffer full");
         OutCRLF();
         Clear_InpBuff();
         length=0;
     }
-    else if((length < max)&&(character >= 32 && character < 127)){
-
+    else if((length < max)&&(character > 32 && character < 127)){
+      valid_char=1;
       *bufPt = character;
       bufPt++;
       length++;
@@ -252,13 +265,14 @@ char character;
 
     }
     else{
+        valid_char=0;
         UART_OutChar(character);
         length++;
     }
   }
   else{
   *bufPt = 0;
-   inp_done=1;
+  inp_done=1;
 
   }
  }
@@ -268,18 +282,25 @@ char character;
 /* delay n milliseconds (16 MHz CPU clock) */
 void switch_press()
 {
-    if((GPIO_PORTF_DATA_RD & 0x10) == 0x00){
-        for(int i = 0 ; i < 50; i++)
-            for(int j = 0; j < 3180; j++) {} /* do nothing for 1 ms */
-        if((GPIO_PORTF_DATA_RD & 0x10) == 0x00)
-            state=state+0x01;
+    short switch_press;
+    while((GPIO_PORTF_DATA_RD & 0x10) == 0x00){
+        switch_press=1;
+        Debounce_Delay();
     }
 
+    if(switch_press==1){
+       
+            state=state+0x01;
+            switch_press=0;
+    }
 
-    if((GPIO_PORTF_DATA_RD & 0x01) == 0x00){
-        for(int i = 0 ; i < 50; i++)
-                    for(int j = 0; j < 3180; j++) {} /* do nothing for 1 ms */
-        if((GPIO_PORTF_DATA_RD & 0x01) == 0x00){
+    while((GPIO_PORTF_DATA_RD & 0x01) == 0x00){
+        switch_press=2;
+        Debounce_Delay();
+    }
+
+    if(switch_press==2){
+        switch_press=0;
          if(delay>=8){
             delay=delay/2;
             all_on=0;
@@ -289,12 +310,12 @@ void switch_press()
             delay=MAX_DELAY*2;
          }
         }
-    }
+    //}
 
 }
 void Clear_InpBuff(){
     for(int i=0;i<MAX_INP_BUFF_SIZE;i++)
-        Inp_buffer[i]=0;
+        console_cmd_buffer[i]=0;
 }
 void LED_off(){
 
@@ -313,8 +334,8 @@ for(i = 0 ; i < n; i++){
 for(j = 0; j < 3180; j++) {} /* do nothing for 1 ms */
 }
 }
-
-
-
-
-
+void Debounce_Delay()
+{
+    for(int i = 0 ; i < 50; i++)
+                for(int j = 0; j < 3180; j++) {} /* do nothing for 1 ms */
+}
