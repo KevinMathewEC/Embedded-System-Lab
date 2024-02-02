@@ -40,7 +40,6 @@
 int unsigned delay=MAX_DELAY;
 void delayMs(int n);
 void LED_off();
-void UART0_Transmitter(char);
 void UART0_init();
 void UART_cmpInp();//Compute data received from console
 void UART_InString(char* , uint16_t);
