@@ -11,15 +11,8 @@
 #include <C:\ti\TivaWare_C_Series-2.1.4.178\driverlib\pin_map.h>
 #include <C:\ti\TivaWare_C_Series-2.1.4.178\driverlib\sysctl.h>
 #include <C:\ti\TivaWare_C_Series-2.1.4.178\driverlib\uart.h>
-//# define SYSCTL_RCGCGPIO_R (*(( volatile unsigned long *)0x400FE608))
 # define GPIO_PORTF_DATA_RD (*(( volatile unsigned long *)0x40025044))
 # define GPIO_PORTF_DATA_WR (*(( volatile unsigned long *)0x40025038))
-//# define GPIO_PORTF_DIR_R (*(( volatile unsigned long *)0x40025400))
-//# define GPIO_PORTF_DEN_R (*(( volatile unsigned long *)0x4002551C))
-//# define GPIO_PORTF_PUR_R (*(( volatile unsigned long *)0x40025510 ))
-//# define GPIO_PORTF_LOCK_R (*((volatile unsigned long *)0x40025520))
-//# define GPIO_PORTF_CR_R  (*((volatile unsigned long *)0x40025524))
-//# define SYSCTL_RCGC2_GPIOF 0x0020
 # define GPIO_PORTF_PIN3_1_EN 0x0E
 # define GPIO_PORTF_PIN0_EN 0x01
 # define GPIO_PORTF_PIN4_EN 0x10
@@ -141,7 +134,7 @@ void UART_cmpInp()
     }
 
    if(inp_done){
-     
+
      while(console_cmd_buffer[i]!=CR){
          console_cmd_buffer[i] = tolower(console_cmd_buffer[i]);
         i++;
@@ -168,7 +161,7 @@ void UART_cmpInp()
         for (i=0; i < 7; i++) {
            if (strcmp(cmd_string, colors[i].color_name) == 0) {
              state = colors[i].state_value;
-        
+
 
     }
    }
@@ -288,7 +281,7 @@ void switch_press()
     }
 
     if(switch_press==1){
-       
+
             state=state+0x01;
             switch_press=0;
     }
@@ -338,3 +331,8 @@ void Debounce_Delay()
     for(int i = 0 ; i < 50; i++)
                 for(int j = 0; j < 3180; j++) {} /* do nothing for 1 ms */
 }
+
+
+
+
+
