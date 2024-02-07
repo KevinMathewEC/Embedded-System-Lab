@@ -1,0 +1,39 @@
+***************************************************************************************
+Description
+This code is written in C language and intended to run on a Tiva C Series microcontroller. It controls the color and blink rate of LED's on the TIVA evaluation board based on user commands received through UART communication and through switch 1&2 .
+
+***************************************************************************************
+Components Used
+Tiva C Series microcontroller
+LED connected to GPIO Port F
+UART communication(console)
+
+***************************************************************************************
+Libraries
+stdint.h: Standard integer types
+stdio.h: Standard input/output functions
+stdbool.h: Standard boolean types and values
+string.h: String handling functions
+stdlib.h: Standard library functions
+ctype.h: Character handling functions
+TivaWare libraries for GPIO and UART functionality
+
+***************************************************************************************
+Functions
+void delayMs(int n): Delay function , generte delay for n miliseconds
+void LED_off(): Turn off all LEDs
+void UART0_init(): Initialize UART0 for communication
+void UART_cmpInp(): Compute data received from the console
+void UART_InString(char*, uint16_t): Receive a string through UART
+void OutCRLF(): Output Carriage Return (CR) and Line Feed (LF) characters
+void UART_OutChar(unsigned char): Output a character through UART
+void UART_OutString(char*): Output a string through UART
+void Clear_InpBuff(): Clear the input buffer
+void Debounce_Delay(): Debounce delay function
+
+***************************************************************************************
+Usage
+Initialize the GPIO and UART communication.
+Continuously monitor the console for user commands.
+Monitor the switches 1 and 2.
+Interpret and execute user commands to control the LED color and blink rate.
