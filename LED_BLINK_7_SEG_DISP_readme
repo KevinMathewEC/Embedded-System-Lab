@@ -1,0 +1,67 @@
+Tiva C Series LED Controller WITH UART, KEYPAD SWITCH AND SEVEN SEGMENT DISPLAY
+This project implements a LED controller using a Tiva C Series microcontroller. It allows controlling the color and blinking behavior of an LED using input from a switch, keypad or UART console.
+
+Table of Contents
+Overview
+Dependencies
+Building and Running
+Usage
+Function Description
+
+Overview
+The code consists of C files for initializing the Tiva C Series microcontroller, configuring GPIO pins to control the LED, setting up UART communication for console input, and implementing functions for LED control, keypad input handling, and UART command processing.
+
+Dependencies
+TivaWare C Series
+Building and Running
+Clone the repository or download the source code files.
+Set up the development environment with TivaWare C Series installed.
+Compile the code using your preferred compiler (e.g., Code Composer Studio, GCC).
+Flash the compiled binary onto the Tiva C Series microcontroller.
+
+Usage
+Connect the Tiva C Series microcontroller and the Eduram Board.
+Power on the microcontroller.
+Use the keypad or UART console to control the LED color and blinking behavior.
+
+Function Description
+void LED_init()
+Initializes GPIO pins for LED control.
+
+void UART0_init()
+Initializes UART communication for console input.
+
+void SSD_init()
+Initializes GPIO pins for controlling the seven-segment display.
+
+void OutCRLF()
+Outputs carriage return and line feed characters.
+
+unsigned char UART_InChar()
+Receives a character from UART.
+
+void UART_OutChar(unsigned char data)
+Sends a character through UART.
+
+void UART_OutString(char *pt)
+Sends a string through UART.
+
+void UART_InString(char *bufPt, uint16_t max)
+Receives a string from UART.
+
+void LED_off()
+Turns off the LED.
+
+void delayMs(int n)
+Delays execution for a specified number of milliseconds.
+
+void Debounce_Delay(int n)
+Delays execution for debouncing keypad input.
+
+void switch_press()
+Handles switch presses for LED color switching and blinking rate adjustment.
+
+void Clear_InpBuff()
+Clears the input buffer.
+
+Contributing
