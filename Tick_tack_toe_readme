@@ -1,0 +1,16 @@
+Stopwatch Timer
+Develop a stopwatch timer that works on Tiva board.
+The timer uses  four modules of seven segment LED display to show the timer value.
+First three modules are used for seconds field and last one for milliseconds field.
+Use onboard SW1 and SW2 switches to control the timer.
+SW1 - Stop/Start
+SW2 - Pause/Resume
+Above functionality is also supported using UART console  commands "timer stop/start/pause/resume".
+SysTick timer is used to keep time
+If the timer is ready (STOP state and timer value reset to 0.0)  then it glows Green LED continuously  and displays "Timer Ready" on two line LCD display module.
+If the timer is in running state then it  is indicated by blinking Green LED and displays  "Timer Running" on the  the LCD module.
+If the timer is in pause state then it is indicated by blinking Blue LED and displaying "Timer Paused" on the LCD module.
+Tic-Tac-Toe
+The system also supports playing Tic-Tac-Toe game simultaneously. It uses first 3 rows and columns of the 4x4 keypad to play the game. 
+Every alternate move is assigned to the same player ( Player 1 or 2) represented using different symbols ( 'X' and 'O').
+After every move, updated status of the game is displayed on the UART console. The program should be able to checks validity of the move and detect the "game over" condition. UART console prints appropriate message during and after the game. For example, "Invalid move",  "Game won by Player 1/2" or "Game draw" .
